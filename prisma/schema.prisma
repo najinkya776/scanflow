@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String?
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  restaurants Restaurant[]
+}
+
+model Restaurant {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  description      String?
+  logo             String?
+  coverImage       String?
+  address          String?
+  phone            String?
+  email            String?
+  website          String?
+  instagram        String?
+  googleMapsUrl    String?
+  googleReviewUrl  String?
+  wifiPassword     String?
+  primaryColor     String         @default("#22c55e")
+  subscriptionPlan String         @default("basic")
+  isActive         Boolean        @default(true)
+  callWaiterEnabled Boolean       @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  ownerId          String
+  owner            User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  menuCategories   MenuCategory[]
+  qrCodes          QRCode[]
+  feedback         Feedback[]
+  scans            Scan[]
+  offers           Offer[]
+}
+
+model MenuCategory {
+  id           String     @id @default(cuid())
+  name         String
+  sortOrder    Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items        MenuItem[]
+}
+
+model MenuItem {
+  id           String       @id @default(cuid())
+  name         String
+  description  String?
+  price        Float
+  image        String?
+  isAvailable  Boolean      @default(true)
+  isBestSeller Boolean      @default(false)
+  isVeg        Boolean      @default(true)
+  isSpicy      Boolean      @default(false)
+  sortOrder    Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  categoryId   String
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model QRCode {
+  id           String     @id @default(cuid())
+  name         String
+  type         String     @default("table")
+  tableNumber  String?
+  description  String?
+  scans        Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id                  String     @id @default(cuid())
+  rating              String
+  sentiment           String
+  comment             String?
+  customerName        String?
+  customerPhone       String?
+  isPublic            Boolean    @default(false)
+  redirectedToGoogle  Boolean    @default(false)
+  aiAnalysis          String?
+  qrCodeId            String?
+  qrType              String?
+  tableNumber         String?
+  createdAt           DateTime   @default(now())
+
+  restaurantId        String
+  restaurant          Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Scan {
+  id           String     @id @default(cuid())
+  qrCodeId     String?
+  qrType       String     @default("menu")
+  tableNumber  String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Offer {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  validUntil   DateTime?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
